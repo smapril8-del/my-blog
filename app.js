@@ -1,5 +1,5 @@
-var BlogStore = {
-  KEY: 'blog_posts',
+var MemoStore = {
+  KEY: 'memo_messages',
 
   getAll: function() {
     try {
@@ -9,55 +9,62 @@ var BlogStore = {
     }
   },
 
-  saveAll: function(posts) {
-    localStorage.setItem(this.KEY, JSON.stringify(posts));
+  saveAll: function(messages) {
+    localStorage.setItem(this.KEY, JSON.stringify(messages));
   },
 
-  getById: function(id) {
-    return this.getAll().find(function(p) { return p.id === id; }) || null;
-  },
-
-  create: function(post) {
-    var posts = this.getAll();
-    post.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    post.createdAt = new Date().toISOString();
-    post.updatedAt = post.createdAt;
-    post.excerpt = post.excerpt || post.content.slice(0, 150).replace(/<[^>]*>/g, '').slice(0, 150);
-    posts.push(post);
-    this.saveAll(posts);
-    return post;
-  },
-
-  update: function(id, data) {
-    var posts = this.getAll();
-    var idx = posts.findIndex(function(p) { return p.id === id; });
-    if (idx === -1) return null;
-    if (data.title !== undefined) posts[idx].title = data.title;
-    if (data.content !== undefined) {
-      posts[idx].content = data.content;
-      posts[idx].excerpt = data.content.slice(0, 150).replace(/<[^>]*>/g, '').slice(0, 150);
-    }
-    posts[idx].updatedAt = new Date().toISOString();
-    this.saveAll(posts);
-    return posts[idx];
+  add: function(msg) {
+    var messages = this.getAll();
+    msg.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    msg.createdAt = new Date().toISOString();
+    msg.starred = false;
+    messages.push(msg);
+    this.saveAll(messages);
+    return msg;
   },
 
   remove: function(id) {
-    var posts = this.getAll().filter(function(p) { return p.id !== id; });
-    this.saveAll(posts);
+    var messages = this.getAll().filter(function(m) { return m.id !== id; });
+    this.saveAll(messages);
+  },
+
+  toggleStar: function(id) {
+    var messages = this.getAll();
+    var m = messages.find(function(item) { return item.id === id; });
+    if (m) {
+      m.starred = !m.starred;
+      this.saveAll(messages);
+    }
+    return m;
+  },
+
+  update: function(id, text) {
+    var messages = this.getAll();
+    var m = messages.find(function(item) { return item.id === id; });
+    if (m) {
+      m.content = text;
+      this.saveAll(messages);
+    }
+    return m;
   }
 };
 
-function formatDate(dateStr) {
+function formatTime(dateStr) {
   var d = new Date(dateStr);
-  var y = d.getFullYear();
-  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var now = new Date();
+  var month = String(d.getMonth() + 1).padStart(2, '0');
   var day = String(d.getDate()).padStart(2, '0');
-  return y + '-' + m + '-' + day;
-}
+  var time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 
-function escapeHtml(str) {
-  var div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  if (d.toDateString() === now.toDateString()) {
+    return time;
+  }
+
+  var yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) {
+    return '昨天 ' + time;
+  }
+
+  return d.getFullYear() + '-' + month + '-' + day + ' ' + time;
 }

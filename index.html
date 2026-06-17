@@ -3,60 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我的博客</title>
+<title>我们的记事录</title>
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<nav class="navbar">
-  <div class="container">
-    <a href="/" class="logo">我的博客</a>
-    <div class="nav-links">
-      <a href="/">首页</a>
-      <a href="/editor.html">写文章</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-left">
+      <h1>我们的记事录</h1>
+      <span id="msg-count" class="msg-count"></span>
+    </div>
+    <div class="topbar-right">
+      <button id="search-toggle" class="icon-btn" title="搜索">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      </button>
     </div>
   </div>
-</nav>
+  <div id="search-bar" class="search-bar hidden">
+    <input type="text" id="search-input" placeholder="搜索记事内容...">
+    <button id="search-clear" class="search-clear">&times;</button>
+  </div>
+</header>
 
-<main class="container">
-  <section class="hero">
-    <h1>欢迎来到我的博客</h1>
-    <p>记录思考，分享知识</p>
-  </section>
-
-  <div id="posts-container" class="posts-grid">
-    <p class="loading">加载中...</p>
+<main id="chat-area" class="chat-area">
+  <div id="messages-container" class="messages-container">
+    <div class="welcome-hint">
+      <div class="welcome-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <p>在这里记录我们的点点滴滴</p>
+      <p class="welcome-sub">选择发送者，写下你想记录的事情</p>
+    </div>
   </div>
 </main>
 
-<footer>
-  <div class="container">
-    <p>&copy; 2026 我的博客</p>
+<div class="input-area">
+  <div class="sender-toggle">
+    <button id="sender-me" class="sender-btn active" data-sender="me">
+      <span class="sender-avatar me-avatar">我</span>
+      <span>我</span>
+    </button>
+    <button id="sender-wife" class="sender-btn" data-sender="wife">
+      <span class="sender-avatar wife-avatar">她</span>
+      <span>媳妇</span>
+    </button>
   </div>
-</footer>
+  <div class="input-row">
+    <textarea id="memo-input" class="memo-input" placeholder="记录一件事..." rows="1"></textarea>
+    <button id="send-btn" class="send-btn" title="发送">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
 
 <script src="/app.js"></script>
 <script>
 (function() {
-  var container = document.getElementById('posts-container');
-  var posts = BlogStore.getAll();
+  var currentSender = 'me';
+  var searchQuery = '';
+  var editingId = null;
 
-  posts.sort(function(a, b) {
-    return new Date(b.createdAt) - new Date(a.createdAt);
+  var senderMe = document.getElementById('sender-me');
+  var senderWife = document.getElementById('sender-wife');
+  var memoInput = document.getElementById('memo-input');
+  var sendBtn = document.getElementById('send-btn');
+  var container = document.getElementById('messages-container');
+  var searchInput = document.getElementById('search-input');
+  var searchBar = document.getElementById('search-bar');
+  var searchToggle = document.getElementById('search-toggle');
+  var searchClear = document.getElementById('search-clear');
+  var msgCount = document.getElementById('msg-count');
+
+  senderMe.addEventListener('click', function() {
+    currentSender = 'me';
+    senderMe.classList.add('active');
+    senderWife.classList.remove('active');
   });
 
-  if (posts.length === 0) {
-    container.innerHTML = '<div class="empty-state"><p>还没有文章</p><a href="/editor.html" class="btn btn-primary">写第一篇</a></div>';
-    return;
+  senderWife.addEventListener('click', function() {
+    currentSender = 'wife';
+    senderWife.classList.add('active');
+    senderMe.classList.remove('active');
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+  memoInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  searchToggle.addEventListener('click', function() {
+    searchBar.classList.toggle('hidden');
+    if (!searchBar.classList.contains('hidden')) {
+      searchInput.focus();
+    }
+  });
+
+  searchInput.addEventListener('input', function() {
+    searchQuery = searchInput.value.toLowerCase().trim();
+    render();
+  });
+
+  searchClear.addEventListener('click', function() {
+    searchInput.value = '';
+    searchQuery = '';
+    searchBar.classList.add('hidden');
+    render();
+  });
+
+  function sendMessage() {
+    var text = memoInput.value.trim();
+    if (!text) return;
+    if (editingId) {
+      MemoStore.update(editingId, text);
+      editingId = null;
+      sendBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+    } else {
+      MemoStore.add({ sender: currentSender, content: text });
+    }
+    memoInput.value = '';
+    memoInput.style.height = 'auto';
+    render();
   }
 
-  container.innerHTML = posts.map(function(post) {
-    return '<article class="post-card">' +
-      '<time datetime="' + post.createdAt + '">' + formatDate(post.createdAt) + '</time>' +
-      '<h2><a href="/article.html?id=' + post.id + '">' + escapeHtml(post.title) + '</a></h2>' +
-      '<p class="excerpt">' + escapeHtml(post.excerpt || '') + '</p>' +
-      '<a href="/article.html?id=' + post.id + '" class="read-more">阅读全文</a>' +
-      '</article>';
-  }).join('');
+  memoInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  container.addEventListener('click', function(e) {
+    var target = e.target.closest('[data-action]');
+    if (!target) return;
+    var id = target.dataset.id;
+    var action = target.dataset.action;
+
+    if (action === 'delete') {
+      if (confirm('删除这条记录？')) {
+        MemoStore.remove(id);
+        render();
+      }
+    }
+    if (action === 'star') {
+      MemoStore.toggleStar(id);
+      render();
+    }
+    if (action === 'edit') {
+      var msg = MemoStore.getAll().find(function(m) { return m.id === id; });
+      if (msg) {
+        memoInput.value = msg.content;
+        memoInput.focus();
+        memoInput.style.height = 'auto';
+        memoInput.style.height = Math.min(memoInput.scrollHeight, 120) + 'px';
+        editingId = id;
+        currentSender = msg.sender;
+        if (msg.sender === 'me') {
+          senderMe.classList.add('active');
+          senderWife.classList.remove('active');
+        } else {
+          senderWife.classList.add('active');
+          senderMe.classList.remove('active');
+        }
+        sendBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+      }
+    }
+  });
+
+  function render() {
+    var messages = MemoStore.getAll();
+    if (searchQuery) {
+      messages = messages.filter(function(m) {
+        return m.content.toLowerCase().indexOf(searchQuery) !== -1;
+      });
+    }
+
+    var total = MemoStore.getAll().length;
+    msgCount.textContent = total + ' 条记录';
+
+    if (messages.length === 0) {
+      container.innerHTML = searchQuery
+        ? '<div class="empty-hint">没有匹配的记录</div>'
+        : '<div class="welcome-hint">' +
+            '<div class="welcome-icon">' +
+              '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' +
+            '</div>' +
+            '<p>在这里记录我们的点点滴滴</p>' +
+            '<p class="welcome-sub">选择发送者，写下你想记录的事情</p>' +
+          '</div>';
+      return;
+    }
+
+    messages.sort(function(a, b) {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    });
+
+    var currentDate = '';
+    var html = '';
+
+    messages.forEach(function(msg) {
+      var dateStr = formatTime(msg.createdAt).split(' ')[0];
+      if (!/^\d/.test(dateStr)) return;
+      var dateOnly = dateStr;
+
+      if (dateOnly !== currentDate) {
+        currentDate = dateOnly;
+        html += '<div class="date-divider"><span>' + dateOnly + '</span></div>';
+      }
+
+      var isMe = msg.sender === 'me';
+      html += '<div class="msg-row ' + (isMe ? 'msg-me' : 'msg-wife') + '">';
+      if (!isMe) {
+        html += '<div class="avatar-bubble wife-avatar">她</div>';
+      }
+      html += '<div class="msg-bubble-wrapper">';
+      html += '<div class="msg-bubble ' + (isMe ? 'bubble-me' : 'bubble-wife') + '">';
+      html += '<div class="msg-text">' + msg.content.replace(/\n/g, '<br>') + '</div>';
+      html += '</div>';
+      html += '<div class="msg-meta">';
+      html += '<span class="msg-time">' + formatTime(msg.createdAt) + '</span>';
+      html += '<span class="msg-actions">';
+      html += '<button class="msg-action-btn' + (msg.starred ? ' starred' : '') + '" data-action="star" data-id="' + msg.id + '" title="标记">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="' + (msg.starred ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
+        '</button>';
+      html += '<button class="msg-action-btn" data-action="edit" data-id="' + msg.id + '" title="编辑">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+        '</button>';
+      html += '<button class="msg-action-btn" data-action="delete" data-id="' + msg.id + '" title="删除">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>' +
+        '</button>';
+      html += '</span>';
+      html += '</div>';
+      html += '</div>';
+      if (isMe) {
+        html += '<div class="avatar-bubble me-avatar">我</div>';
+      }
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+  }
+
+  render();
 })();
 </script>
 </body>
