@@ -41,15 +41,16 @@ body::after {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 28px;
-  font-weight: 300;
-  color: rgba(180, 160, 150, 0.12);
+  font-size: 42px;
+  font-weight: 400;
+  color: rgba(224, 85, 97, 0.18);
   pointer-events: none;
   z-index: -1;
-  letter-spacing: 4px;
-  line-height: 1.6;
+  letter-spacing: 6px;
+  line-height: 1.8;
   text-align: center;
-  font-family: "STKaiti", "KaiTi", "Noto Serif SC", serif;
+  font-family: "STKaiti", "KaiTi", "Noto Serif SC", "Songti SC", serif;
+  text-shadow: 0 0 40px rgba(224, 85, 97, 0.08);
 }
 
 /* Top Bar */
