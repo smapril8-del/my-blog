@@ -30,7 +30,7 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: url('/bg.png') center/cover no-repeat fixed;
+  background: url('/bg.png') top center/cover no-repeat fixed;
   filter: brightness(1.02) saturate(0.9);
   z-index: -2;
 }
