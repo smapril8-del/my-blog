@@ -24,33 +24,109 @@ body {
   margin: 0 auto;
   overflow: hidden;
   position: relative;
+  background: #f5f0eb;
 }
 
-body::before {
-  content: '';
+/* Background image */
+.bg-layer {
   position: fixed;
   inset: 0;
   background: url('/bg.png') bottom center/contain no-repeat fixed;
   z-index: -2;
+  pointer-events: none;
 }
 
-body::after {
-  content: '在这里记录我们的点点滴滴\n写下想说的话，彼此都能看见';
-  white-space: pre-line;
+/* Art text + ECG layer */
+.art-text-layer {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 42px;
-  font-weight: 400;
-  color: rgba(224, 85, 97, 0.18);
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   z-index: -1;
-  letter-spacing: 6px;
-  line-height: 1.8;
+  pointer-events: none;
+  width: 90%;
+  max-width: 600px;
+}
+
+.ecg-line {
+  flex-shrink: 0;
+  width: 80px;
+  height: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ecg-line svg {
+  width: 100%;
+  height: 100%;
+  animation: ecgPulse 1.5s ease-in-out infinite;
+}
+
+.ecg-line.left svg {
+  transform: scaleX(-1);
+}
+
+@keyframes ecgPulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.5; }
+}
+
+.ecg-heart {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: heartBeat 1.5s ease-in-out infinite;
+}
+
+.ecg-heart svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ecg-line.left .ecg-heart {
+  animation-delay: 0.75s;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.3; }
+  50% { transform: translateX(-50%) scale(1.3); opacity: 0.7; }
+}
+
+/* Art text */
+.art-text {
+  flex: 1;
   text-align: center;
-  font-family: "STKaiti", "KaiTi", "Noto Serif SC", "Songti SC", serif;
-  text-shadow: 0 0 40px rgba(224, 85, 97, 0.08);
+}
+
+.art-text .line1 {
+  font-size: 36px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24, #ff4757, #e84118);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 4px;
+  line-height: 1.4;
+  filter: drop-shadow(0 3px 6px rgba(238, 90, 36, 0.3)) drop-shadow(0 1px 3px rgba(0,0,0,0.12));
+  font-family: "PingFang SC", "Microsoft YaHei", "SimHei", sans-serif;
+}
+
+.art-text .line2 {
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff8a80, #ff5252, #ff4081, #e05561);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 3px;
+  line-height: 1.4;
+  margin-top: 4px;
+  filter: drop-shadow(0 3px 6px rgba(224, 85, 97, 0.25)) drop-shadow(0 1px 3px rgba(0,0,0,0.1));
+  font-family: "PingFang SC", "Microsoft YaHei", "SimHei", sans-serif;
 }
 
 /* Top Bar */
@@ -503,5 +579,11 @@ body::after {
   }
   .messages-container {
     padding: 0 8px;
+  }
+  .art-text .line1 {
+    font-size: 28px;
+  }
+  .art-text .line2 {
+    font-size: 22px;
   }
 }
