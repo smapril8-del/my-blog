@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的博客</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">我的博客</a>
+    <div class="nav-links">
+      <a href="/">首页</a>
+      <a href="/editor.html">写文章</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <section class="hero">
+    <h1>欢迎来到我的博客</h1>
+    <p>记录思考，分享知识</p>
+  </section>
+
+  <div id="posts-container" class="posts-grid">
+    <p class="loading">加载中...</p>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>&copy; 2026 我的博客</p>
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+<script>
+(function() {
+  var container = document.getElementById('posts-container');
+  var posts = BlogStore.getAll();
+
+  posts.sort(function(a, b) {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  if (posts.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>还没有文章</p><a href="/editor.html" class="btn btn-primary">写第一篇</a></div>';
+    return;
+  }
+
+  container.innerHTML = posts.map(function(post) {
+    return '<article class="post-card">' +
+      '<time datetime="' + post.createdAt + '">' + formatDate(post.createdAt) + '</time>' +
+      '<h2><a href="/article.html?id=' + post.id + '">' + escapeHtml(post.title) + '</a></h2>' +
+      '<p class="excerpt">' + escapeHtml(post.excerpt || '') + '</p>' +
+      '<a href="/article.html?id=' + post.id + '" class="read-more">阅读全文</a>' +
+      '</article>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

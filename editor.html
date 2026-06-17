@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>写文章 - 我的博客</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="logo">我的博客</a>
+    <div class="nav-links">
+      <a href="/">首页</a>
+      <a href="/editor.html" class="active">写文章</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="editor-container">
+    <h1 id="editor-title-text">写文章</h1>
+
+    <div class="form-group">
+      <input type="text" id="title" placeholder="文章标题" class="form-input title-input">
+    </div>
+
+    <div class="editor-toolbar">
+      <button type="button" class="toolbar-btn" data-cmd="bold" title="加粗"><b>B</b></button>
+      <button type="button" class="toolbar-btn" data-cmd="italic" title="斜体"><i>I</i></button>
+      <button type="button" class="toolbar-btn" data-cmd="underline" title="下划线"><u>U</u></button>
+      <span class="toolbar-sep"></span>
+      <button type="button" class="toolbar-btn" data-cmd="h2" title="标题">H2</button>
+      <button type="button" class="toolbar-btn" data-cmd="h3" title="小标题">H3</button>
+      <span class="toolbar-sep"></span>
+      <button type="button" class="toolbar-btn" data-cmd="ul" title="无序列表">列表</button>
+      <button type="button" class="toolbar-btn" data-cmd="ol" title="有序列表">编号</button>
+      <button type="button" class="toolbar-btn" data-cmd="blockquote" title="引用">引用</button>
+      <button type="button" class="toolbar-btn" data-cmd="code" title="代码">代码</button>
+      <button type="button" class="toolbar-btn" data-cmd="link" title="链接">链接</button>
+      <button type="button" class="toolbar-btn" data-cmd="hr" title="分割线">分割线</button>
+    </div>
+
+    <div class="editor-wrapper">
+      <div id="editor" class="editor" contenteditable="true" placeholder="开始写作..."></div>
+    </div>
+
+    <div class="form-actions">
+      <button id="save-btn" class="btn btn-primary">发布文章</button>
+      <a href="/" class="btn btn-secondary">取消</a>
+    </div>
+
+    <div id="editor-status" class="editor-status"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>&copy; 2026 我的博客</p>
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+<script>
+(function() {
+  var editingId = null;
+  var params = new URLSearchParams(window.location.search);
+  editingId = params.get('id');
+
+  if (editingId) {
+    document.getElementById('editor-title-text').textContent = '编辑文章';
+    document.getElementById('save-btn').textContent = '保存修改';
+    var post = BlogStore.getById(editingId);
+    if (post) {
+      document.getElementById('title').value = post.title;
+      document.getElementById('editor').innerHTML = post.content;
+    }
+  }
+
+  document.getElementById('save-btn').addEventListener('click', savePost);
+
+  document.querySelectorAll('.toolbar-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { execCmd(btn.dataset.cmd); });
+  });
+
+  document.getElementById('editor').addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'b') { e.preventDefault(); execCmd('bold'); }
+      if (e.key === 'i') { e.preventDefault(); execCmd('italic'); }
+      if (e.key === 'u') { e.preventDefault(); execCmd('underline'); }
+    }
+  });
+
+  function execCmd(cmd) {
+    var editor = document.getElementById('editor');
+    editor.focus();
+    switch (cmd) {
+      case 'bold': document.execCommand('bold'); break;
+      case 'italic': document.execCommand('italic'); break;
+      case 'underline': document.execCommand('underline'); break;
+      case 'h2': document.execCommand('formatBlock', false, 'h2'); break;
+      case 'h3': document.execCommand('formatBlock', false, 'h3'); break;
+      case 'ul': document.execCommand('insertUnorderedList'); break;
+      case 'ol': document.execCommand('insertOrderedList'); break;
+      case 'blockquote': document.execCommand('formatBlock', false, 'blockquote'); break;
+      case 'code': wrapSelection('code'); break;
+      case 'link':
+        var url = prompt('输入链接地址:');
+        if (url) document.execCommand('createLink', false, url);
+        break;
+      case 'hr': document.execCommand('insertHorizontalRule'); break;
+    }
+  }
+
+  function wrapSelection(tag) {
+    var sel = window.getSelection();
+    if (sel.rangeCount) {
+      var range = sel.getRangeAt(0);
+      var el = document.createElement(tag);
+      try {
+        range.surroundContents(el);
+      } catch (e) {
+        var text = range.extractContents();
+        el.appendChild(text);
+        range.insertNode(el);
+      }
+    }
+  }
+
+  function savePost() {
+    var title = document.getElementById('title').value.trim();
+    var content = document.getElementById('editor').innerHTML.trim();
+
+    if (!title) { showStatus('请输入标题', 'error'); return; }
+    if (!content || content === '<br>') { showStatus('请输入内容', 'error'); return; }
+
+    var post;
+    if (editingId) {
+      post = BlogStore.update(editingId, { title: title, content: content });
+    } else {
+      post = BlogStore.create({ title: title, content: content });
+    }
+
+    showStatus('保存成功', 'success');
+    setTimeout(function() {
+      window.location.href = '/article.html?id=' + post.id;
+    }, 500);
+  }
+
+  function showStatus(msg, type) {
+    var el = document.getElementById('editor-status');
+    el.textContent = msg;
+    el.className = 'editor-status ' + type;
+    setTimeout(function() { el.className = 'editor-status'; }, 3000);
+  }
+})();
+</script>
+</body>
+</html>
