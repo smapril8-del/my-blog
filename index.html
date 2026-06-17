@@ -47,13 +47,11 @@
 
 <div class="input-area">
   <div class="sender-toggle">
-    <button id="sender-me" class="sender-btn active" data-sender="me">
-      <span class="sender-avatar me-avatar">我</span>
-      <span>我</span>
+    <button id="sender-me" class="sender-btn active" data-sender="me" title="我">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
     </button>
-    <button id="sender-wife" class="sender-btn" data-sender="wife">
-      <span class="sender-avatar wife-avatar">她</span>
-      <span>媳妇</span>
+    <button id="sender-wife" class="sender-btn" data-sender="wife" title="媳妇">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
     </button>
   </div>
   <div class="input-row">
@@ -87,12 +85,18 @@
     currentSender = 'me';
     senderMe.classList.add('active');
     senderWife.classList.remove('active');
+    var svg = senderMe.querySelector('svg');
+    if (svg) svg.style.animation = 'none';
+    setTimeout(function() { if (svg) svg.style.animation = ''; }, 10);
   });
 
   senderWife.addEventListener('click', function() {
     currentSender = 'wife';
     senderWife.classList.add('active');
     senderMe.classList.remove('active');
+    var svg = senderWife.querySelector('svg');
+    if (svg) svg.style.animation = 'none';
+    setTimeout(function() { if (svg) svg.style.animation = ''; }, 10);
   });
 
   sendBtn.addEventListener('click', sendMessage);
@@ -175,7 +179,6 @@
       });
     }
     if (action === 'star') {
-      var msgEl = target.closest('.msg-row');
       var isStarred = target.classList.contains('starred');
       showSync(true);
       api.update(id, { starred: !isStarred }).then(function() {
@@ -260,10 +263,14 @@
       }
 
       var isMe = msg.sender === 'me';
+      var heartColor = isMe ? 'me-avatar-heart' : 'wife-avatar-heart';
+
       html += '<div class="msg-row ' + (isMe ? 'msg-me' : 'msg-wife') + '">';
-      if (!isMe) {
-        html += '<div class="avatar-bubble wife-avatar">她</div>';
-      }
+
+      html += '<div class="avatar-bubble">';
+      html += '<svg class="' + heartColor + '" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>';
+      html += '</div>';
+
       html += '<div class="msg-bubble-wrapper">';
       html += '<div class="msg-bubble ' + (isMe ? 'bubble-me' : 'bubble-wife') + '">';
       html += '<div class="msg-text">' + msg.content.replace(/\n/g, '<br>') + '</div>';
@@ -283,9 +290,7 @@
       html += '</span>';
       html += '</div>';
       html += '</div>';
-      if (isMe) {
-        html += '<div class="avatar-bubble me-avatar">我</div>';
-      }
+
       html += '</div>';
     });
 
