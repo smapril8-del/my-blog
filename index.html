@@ -11,10 +11,13 @@
 <header class="topbar">
   <div class="topbar-inner">
     <div class="topbar-left">
+      <span class="heart-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      </span>
       <h1>我们的记事录</h1>
-      <span id="msg-count" class="msg-count"></span>
     </div>
     <div class="topbar-right">
+      <span id="msg-count" class="msg-count"></span>
       <button id="search-toggle" class="icon-btn" title="搜索">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       </button>
@@ -30,13 +33,17 @@
   <div id="messages-container" class="messages-container">
     <div class="welcome-hint">
       <div class="welcome-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
       </div>
       <p>在这里记录我们的点点滴滴</p>
-      <p class="welcome-sub">选择发送者，写下你想记录的事情</p>
+      <p class="welcome-sub">写下想说的话，彼此都能看见</p>
     </div>
   </div>
 </main>
+
+<div id="sync-bar" class="sync-bar hidden">
+  <span class="sync-dot"></span> 同步中...
+</div>
 
 <div class="input-area">
   <div class="sender-toggle">
@@ -74,6 +81,7 @@
   var searchToggle = document.getElementById('search-toggle');
   var searchClear = document.getElementById('search-clear');
   var msgCount = document.getElementById('msg-count');
+  var syncBar = document.getElementById('sync-bar');
 
   senderMe.addEventListener('click', function() {
     currentSender = 'me';
@@ -97,9 +105,7 @@
 
   searchToggle.addEventListener('click', function() {
     searchBar.classList.toggle('hidden');
-    if (!searchBar.classList.contains('hidden')) {
-      searchInput.focus();
-    }
+    if (!searchBar.classList.contains('hidden')) searchInput.focus();
   });
 
   searchInput.addEventListener('input', function() {
@@ -114,19 +120,36 @@
     render();
   });
 
-  function sendMessage() {
+  async function sendMessage() {
     var text = memoInput.value.trim();
     if (!text) return;
+
     if (editingId) {
-      MemoStore.update(editingId, text);
-      editingId = null;
-      sendBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+      try {
+        showSync(true);
+        await api.update(editingId, { content: text });
+        editingId = null;
+        sendBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+      } catch (e) {
+        alert('更新失败，请重试');
+        showSync(false);
+        return;
+      }
     } else {
-      MemoStore.add({ sender: currentSender, content: text });
+      try {
+        showSync(true);
+        await api.add({ sender: currentSender, content: text });
+      } catch (e) {
+        alert('发送失败，请重试');
+        showSync(false);
+        return;
+      }
     }
+
     memoInput.value = '';
     memoInput.style.height = 'auto';
-    render();
+    showSync(false);
+    await loadAndRender();
   }
 
   memoInput.addEventListener('input', function() {
@@ -141,56 +164,82 @@
     var action = target.dataset.action;
 
     if (action === 'delete') {
-      if (confirm('删除这条记录？')) {
-        MemoStore.remove(id);
-        render();
-      }
+      if (!confirm('删除这条记录？')) return;
+      showSync(true);
+      api.remove(id).then(function() {
+        showSync(false);
+        loadAndRender();
+      }).catch(function() {
+        alert('删除失败');
+        showSync(false);
+      });
     }
     if (action === 'star') {
-      MemoStore.toggleStar(id);
-      render();
+      var msgEl = target.closest('.msg-row');
+      var isStarred = target.classList.contains('starred');
+      showSync(true);
+      api.update(id, { starred: !isStarred }).then(function() {
+        showSync(false);
+        loadAndRender();
+      }).catch(function() {
+        alert('操作失败');
+        showSync(false);
+      });
     }
     if (action === 'edit') {
-      var msg = MemoStore.getAll().find(function(m) { return m.id === id; });
-      if (msg) {
-        memoInput.value = msg.content;
-        memoInput.focus();
-        memoInput.style.height = 'auto';
-        memoInput.style.height = Math.min(memoInput.scrollHeight, 120) + 'px';
-        editingId = id;
-        currentSender = msg.sender;
-        if (msg.sender === 'me') {
-          senderMe.classList.add('active');
-          senderWife.classList.remove('active');
-        } else {
-          senderWife.classList.add('active');
-          senderMe.classList.remove('active');
-        }
-        sendBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+      var msgText = target.closest('.msg-row').querySelector('.msg-text').textContent;
+      memoInput.value = msgText;
+      memoInput.focus();
+      memoInput.style.height = 'auto';
+      memoInput.style.height = Math.min(memoInput.scrollHeight, 120) + 'px';
+      editingId = id;
+      var isMe = target.closest('.msg-row').classList.contains('msg-me');
+      currentSender = isMe ? 'me' : 'wife';
+      if (isMe) {
+        senderMe.classList.add('active');
+        senderWife.classList.remove('active');
+      } else {
+        senderWife.classList.add('active');
+        senderMe.classList.remove('active');
       }
+      sendBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
     }
   });
 
-  function render() {
-    var messages = MemoStore.getAll();
+  function showSync(show) {
+    syncBar.classList.toggle('hidden', !show);
+  }
+
+  async function loadAndRender() {
+    try {
+      var messages = await api.getAll();
+      render(messages);
+    } catch (e) {
+      container.innerHTML = '<div class="empty-hint">加载失败，下拉刷新重试</div>';
+    }
+  }
+
+  function render(messages) {
+    if (!messages) messages = [];
+
+    var total = messages.length;
+    msgCount.textContent = total + ' 条';
+
     if (searchQuery) {
       messages = messages.filter(function(m) {
         return m.content.toLowerCase().indexOf(searchQuery) !== -1;
       });
     }
 
-    var total = MemoStore.getAll().length;
-    msgCount.textContent = total + ' 条记录';
-
     if (messages.length === 0) {
       container.innerHTML = searchQuery
         ? '<div class="empty-hint">没有匹配的记录</div>'
         : '<div class="welcome-hint">' +
             '<div class="welcome-icon">' +
-              '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' +
+              '<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>' +
             '</div>' +
             '<p>在这里记录我们的点点滴滴</p>' +
-            '<p class="welcome-sub">选择发送者，写下你想记录的事情</p>' +
+            '<p class="welcome-sub">写下想说的话，彼此都能看见</p>' +
           '</div>';
       return;
     }
@@ -203,9 +252,7 @@
     var html = '';
 
     messages.forEach(function(msg) {
-      var dateStr = formatTime(msg.createdAt).split(' ')[0];
-      if (!/^\d/.test(dateStr)) return;
-      var dateOnly = dateStr;
+      var dateOnly = formatTime(msg.createdAt).split(' ')[0];
 
       if (dateOnly !== currentDate) {
         currentDate = dateOnly;
@@ -246,7 +293,7 @@
     container.scrollTop = container.scrollHeight;
   }
 
-  render();
+  loadAndRender();
 })();
 </script>
 </body>
