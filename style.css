@@ -31,18 +31,23 @@ body::before {
   position: fixed;
   inset: 0;
   background: url('/bg.png') bottom center/contain no-repeat fixed;
-  filter: brightness(1.05);
   z-index: -2;
 }
 
 body::after {
-  content: '';
+  content: '我们的记事录';
   position: fixed;
-  inset: 0;
-  background: rgba(255, 250, 245, 0.15);
-  backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: 300;
+  color: rgba(180, 160, 150, 0.12);
+  white-space: nowrap;
+  pointer-events: none;
   z-index: -1;
+  letter-spacing: 8px;
+  font-family: "STKaiti", "KaiTi", "Noto Serif SC", serif;
 }
 
 /* Top Bar */
@@ -210,26 +215,7 @@ body::after {
 
 /* Welcome / Empty */
 .welcome-hint {
-  text-align: center;
-  padding: 80px 20px 0;
-  color: var(--text-secondary);
-}
-
-.welcome-icon {
-  color: rgba(224,85,97,0.25);
-  margin-bottom: 16px;
-  animation: heartbeat 2s ease-in-out infinite;
-}
-
-.welcome-hint p {
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.welcome-sub {
-  font-size: 13px !important;
-  color: #c5b0a0 !important;
-  margin-top: 4px;
+  height: 40px;
 }
 
 .empty-hint {
