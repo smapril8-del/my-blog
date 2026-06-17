@@ -2,144 +2,99 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我们的记事录</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>我们的日记本</title>
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
-<div class="bg-layer"></div>
+<div class="sync-toast" id="sync-toast">同步中...</div>
 
-<div class="art-text-layer">
-  <div class="ecg-line left">
-    <svg viewBox="0 0 100 60" fill="none" stroke="#e05561" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="0,30 20,30 25,15 30,45 35,10 40,50 45,30 60,30 65,30 70,30 75,30 100,30"/>
-    </svg>
-    <div class="ecg-heart">
-      <svg viewBox="0 0 24 24" fill="#e05561"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+<div class="book-wrapper">
+
+  <div class="page-left">
+    <div class="page-header">
+      <svg class="heart" viewBox="0 0 24 24" fill="#d4818b"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      <h2>媳妇的记录</h2>
+      <span class="count" id="wife-count">0</span>
+    </div>
+    <div class="page-messages" id="page-wife">
+      <div class="page-empty">还没有记录</div>
     </div>
   </div>
-  <div class="ecg-line right">
-    <svg viewBox="0 0 100 60" fill="none" stroke="#e05561" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="0,30 20,30 25,15 30,45 35,10 40,50 45,30 60,30 65,30 70,30 75,30 100,30"/>
-    </svg>
-    <div class="ecg-heart">
-      <svg viewBox="0 0 24 24" fill="#e05561"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+
+  <div class="spine"></div>
+
+  <div class="page-right">
+    <div class="page-header">
+      <svg class="heart" viewBox="0 0 24 24" fill="#5b8db8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      <h2>我的记录</h2>
+      <span class="count" id="me-count">0</span>
+    </div>
+    <div class="page-messages" id="page-me">
+      <div class="page-empty">还没有记录</div>
     </div>
   </div>
+
 </div>
 
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="topbar-left">
-      <span class="heart-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-      </span>
-      <h1>我们的记事录</h1>
-    </div>
-    <div class="topbar-right">
-      <span id="msg-count" class="msg-count"></span>
-      <button id="search-toggle" class="icon-btn" title="搜索">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      </button>
-    </div>
-  </div>
-  <div id="search-bar" class="search-bar hidden">
-    <input type="text" id="search-input" placeholder="搜索记事内容...">
-    <button id="search-clear" class="search-clear">&times;</button>
-  </div>
-</header>
-
-<main id="chat-area" class="chat-area">
-  <div id="messages-container" class="messages-container">
-    <div class="welcome-hint"></div>
-  </div>
-</main>
-
-<div id="sync-bar" class="sync-bar hidden">
-  <span class="sync-dot"></span> 同步中...
-</div>
-
-<div class="input-area">
-  <div class="sender-toggle">
-    <button id="sender-me" class="sender-btn active" data-sender="me" title="我">
+<div class="input-dock">
+  <div class="sender-pick">
+    <button class="sender-pick-btn active wife" id="pick-wife" title="媳妇">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
     </button>
-    <button id="sender-wife" class="sender-btn" data-sender="wife" title="媳妇">
+    <button class="sender-pick-btn me" id="pick-me" title="我">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
     </button>
   </div>
-  <div class="input-row">
-    <textarea id="memo-input" class="memo-input" placeholder="记录一件事..." rows="1"></textarea>
-    <button id="send-btn" class="send-btn" title="发送">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    </button>
-  </div>
+  <textarea id="memo-input" placeholder="写点什么..." rows="1"></textarea>
+  <button id="send-btn" class="send-btn" title="记录">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </button>
 </div>
 
 <script src="/app.js"></script>
 <script>
 (function() {
-  var currentSender = 'me';
-  var searchQuery = '';
+  var currentSender = 'wife';
   var editingId = null;
 
-  var senderMe = document.getElementById('sender-me');
-  var senderWife = document.getElementById('sender-wife');
+  var pickWife = document.getElementById('pick-wife');
+  var pickMe = document.getElementById('pick-me');
   var memoInput = document.getElementById('memo-input');
   var sendBtn = document.getElementById('send-btn');
-  var container = document.getElementById('messages-container');
-  var searchInput = document.getElementById('search-input');
-  var searchBar = document.getElementById('search-bar');
-  var searchToggle = document.getElementById('search-toggle');
-  var searchClear = document.getElementById('search-clear');
-  var msgCount = document.getElementById('msg-count');
-  var syncBar = document.getElementById('sync-bar');
+  var pageWife = document.getElementById('page-wife');
+  var pageMe = document.getElementById('page-me');
+  var wifeCount = document.getElementById('wife-count');
+  var meCount = document.getElementById('me-count');
+  var syncToast = document.getElementById('sync-toast');
 
-  senderMe.addEventListener('click', function() {
-    currentSender = 'me';
-    senderMe.classList.add('active');
-    senderWife.classList.remove('active');
-    var svg = senderMe.querySelector('svg');
-    if (svg) svg.style.animation = 'none';
-    setTimeout(function() { if (svg) svg.style.animation = ''; }, 10);
-  });
-
-  senderWife.addEventListener('click', function() {
+  pickWife.addEventListener('click', function() {
     currentSender = 'wife';
-    senderWife.classList.add('active');
-    senderMe.classList.remove('active');
-    var svg = senderWife.querySelector('svg');
-    if (svg) svg.style.animation = 'none';
-    setTimeout(function() { if (svg) svg.style.animation = ''; }, 10);
+    pickWife.classList.add('active');
+    pickMe.classList.remove('active');
   });
 
-  sendBtn.addEventListener('click', sendMessage);
+  pickMe.addEventListener('click', function() {
+    currentSender = 'me';
+    pickMe.classList.add('active');
+    pickWife.classList.remove('active');
+  });
+
+  sendBtn.addEventListener('click', send);
   memoInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      send();
     }
   });
 
-  searchToggle.addEventListener('click', function() {
-    searchBar.classList.toggle('hidden');
-    if (!searchBar.classList.contains('hidden')) searchInput.focus();
+  memoInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
   });
 
-  searchInput.addEventListener('input', function() {
-    searchQuery = searchInput.value.toLowerCase().trim();
-    render();
-  });
-
-  searchClear.addEventListener('click', function() {
-    searchInput.value = '';
-    searchQuery = '';
-    searchBar.classList.add('hidden');
-    render();
-  });
-
-  async function sendMessage() {
+  async function send() {
     var text = memoInput.value.trim();
     if (!text) return;
 
@@ -148,9 +103,8 @@
         showSync(true);
         await api.update(editingId, { content: text });
         editingId = null;
-        sendBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+        sendBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
       } catch (e) {
-        alert('更新失败，请重试');
         showSync(false);
         return;
       }
@@ -159,7 +113,6 @@
         showSync(true);
         await api.add({ sender: currentSender, content: text });
       } catch (e) {
-        alert('发送失败，请重试');
         showSync(false);
         return;
       }
@@ -171,88 +124,62 @@
     await loadAndRender();
   }
 
-  memoInput.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-  });
+  function showSync(show) {
+    syncToast.classList.toggle('show', show);
+  }
 
-  container.addEventListener('click', function(e) {
-    var target = e.target.closest('[data-action]');
-    if (!target) return;
-    var id = target.dataset.id;
-    var action = target.dataset.action;
+  pageWife.addEventListener('click', handleAction);
+  pageMe.addEventListener('click', handleAction);
 
+  function handleAction(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var id = btn.dataset.id;
+    var action = btn.dataset.action;
+
+    if (action === 'star') {
+      var starred = btn.classList.contains('starred');
+      showSync(true);
+      api.update(id, { starred: !starred }).then(function() {
+        showSync(false);
+        loadAndRender();
+      });
+    }
     if (action === 'delete') {
       if (!confirm('删除这条记录？')) return;
       showSync(true);
       api.remove(id).then(function() {
         showSync(false);
         loadAndRender();
-      }).catch(function() {
-        alert('删除失败');
-        showSync(false);
-      });
-    }
-    if (action === 'star') {
-      var isStarred = target.classList.contains('starred');
-      showSync(true);
-      api.update(id, { starred: !isStarred }).then(function() {
-        showSync(false);
-        loadAndRender();
-      }).catch(function() {
-        alert('操作失败');
-        showSync(false);
       });
     }
     if (action === 'edit') {
-      var msgText = target.closest('.msg-row').querySelector('.msg-text').textContent;
-      memoInput.value = msgText;
+      var msg = e.target.closest('.note-card');
+      var text = msg.querySelector('.note-text').textContent;
+      memoInput.value = text;
       memoInput.focus();
       memoInput.style.height = 'auto';
-      memoInput.style.height = Math.min(memoInput.scrollHeight, 120) + 'px';
+      memoInput.style.height = Math.min(memoInput.scrollHeight, 100) + 'px';
       editingId = id;
-      var isMe = target.closest('.msg-row').classList.contains('msg-me');
-      currentSender = isMe ? 'me' : 'wife';
-      if (isMe) {
-        senderMe.classList.add('active');
-        senderWife.classList.remove('active');
-      } else {
-        senderWife.classList.add('active');
-        senderMe.classList.remove('active');
-      }
-      sendBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
-    }
-  });
 
-  function showSync(show) {
-    syncBar.classList.toggle('hidden', !show);
+      var page = e.target.closest('.page-left, .page-right');
+      if (page && page.classList.contains('page-left')) {
+        currentSender = 'wife';
+        pickWife.classList.add('active');
+        pickMe.classList.remove('active');
+      } else {
+        currentSender = 'me';
+        pickMe.classList.add('active');
+        pickWife.classList.remove('active');
+      }
+      sendBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
+    }
   }
 
   async function loadAndRender() {
     try {
       var messages = await api.getAll();
-      render(messages);
     } catch (e) {
-      container.innerHTML = '<div class="empty-hint">加载失败，下拉刷新重试</div>';
-    }
-  }
-
-  function render(messages) {
-    if (!messages) messages = [];
-
-    var total = messages.length;
-    msgCount.textContent = total + ' 条';
-
-    if (searchQuery) {
-      messages = messages.filter(function(m) {
-        return m.content.toLowerCase().indexOf(searchQuery) !== -1;
-      });
-    }
-
-    if (messages.length === 0) {
-      container.innerHTML = searchQuery
-        ? '<div class="empty-hint">没有匹配的记录</div>'
-        : '<div class="welcome-hint"></div>';
       return;
     }
 
@@ -260,51 +187,42 @@
       return new Date(a.createdAt) - new Date(b.createdAt);
     });
 
-    var currentDate = '';
-    var html = '';
+    var wifeMsgs = messages.filter(function(m) { return m.sender === 'wife'; });
+    var meMsgs = messages.filter(function(m) { return m.sender === 'me'; });
 
-    messages.forEach(function(msg) {
-      var dateOnly = formatTime(msg.createdAt).split(' ')[0];
+    wifeCount.textContent = wifeMsgs.length;
+    meCount.textContent = meMsgs.length;
 
-      if (dateOnly !== currentDate) {
-        currentDate = dateOnly;
-        html += '<div class="date-divider"><span>' + dateOnly + '</span></div>';
-      }
+    pageWife.innerHTML = wifeMsgs.length === 0
+      ? '<div class="page-empty">还没有记录</div>'
+      : renderNotes(wifeMsgs);
 
-      var isMe = msg.sender === 'me';
-      var heartColor = isMe ? 'me-avatar-heart' : 'wife-avatar-heart';
+    pageMe.innerHTML = meMsgs.length === 0
+      ? '<div class="page-empty">还没有记录</div>'
+      : renderNotes(meMsgs);
+  }
 
-      html += '<div class="msg-row ' + (isMe ? 'msg-me' : 'msg-wife') + '">';
-
-      html += '<div class="avatar-bubble">';
-      html += '<svg class="' + heartColor + '" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>';
-      html += '</div>';
-
-      html += '<div class="msg-bubble-wrapper">';
-      html += '<div class="msg-bubble ' + (isMe ? 'bubble-me' : 'bubble-wife') + '">';
-      html += '<div class="msg-text">' + msg.content.replace(/\n/g, '<br>') + '</div>';
-      html += '</div>';
-      html += '<div class="msg-meta">';
-      html += '<span class="msg-time">' + formatTime(msg.createdAt) + '</span>';
-      html += '<span class="msg-actions">';
-      html += '<button class="msg-action-btn' + (msg.starred ? ' starred' : '') + '" data-action="star" data-id="' + msg.id + '" title="标记">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="' + (msg.starred ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
-        '</button>';
-      html += '<button class="msg-action-btn" data-action="edit" data-id="' + msg.id + '" title="编辑">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
-        '</button>';
-      html += '<button class="msg-action-btn" data-action="delete" data-id="' + msg.id + '" title="删除">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>' +
-        '</button>';
-      html += '</span>';
-      html += '</div>';
-      html += '</div>';
-
-      html += '</div>';
-    });
-
-    container.innerHTML = html;
-    container.scrollTop = container.scrollHeight;
+  function renderNotes(messages) {
+    return messages.map(function(msg) {
+      var t = formatTime(msg.createdAt);
+      return '<div class="note-card">' +
+        '<div class="note-text">' + msg.content.replace(/\n/g, '<br>') + '</div>' +
+        '<div class="note-time">' +
+          '<span>' + t + '</span>' +
+          '<span class="note-actions">' +
+            '<button class="note-btn' + (msg.starred ? ' starred' : '') + '" data-action="star" data-id="' + msg.id + '">' +
+              '<svg width="13" height="13" viewBox="0 0 24 24" fill="' + (msg.starred ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
+            '</button>' +
+            '<button class="note-btn" data-action="edit" data-id="' + msg.id + '">' +
+              '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+            '</button>' +
+            '<button class="note-btn" data-action="delete" data-id="' + msg.id + '">' +
+              '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>' +
+            '</button>' +
+          '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
   }
 
   loadAndRender();
